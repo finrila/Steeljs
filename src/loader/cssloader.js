@@ -6,6 +6,10 @@
 //import resource/queue
 
 function loader_css( url, callback, load_ID ){
+    var link_id = 'link-' + load_ID;
+    if (getElementById(link_id)) {
+        return callback(true);
+    }
     var link = core_dom_createElement('link');
     var load_div = null;
     var domID = core_uniqueKey();
@@ -17,7 +21,7 @@ function loader_css( url, callback, load_ID ){
     core_dom_setAttribute(link, 'rel', 'Stylesheet');
     core_dom_setAttribute(link, 'type', 'text/css');
     core_dom_setAttribute(link, 'charset', 'utf-8');
-    core_dom_setAttribute(link, 'id', load_ID);
+    core_dom_setAttribute(link, 'id', link_id);
     /*if(IE){
         (link.Stylesheet || link.sheet).addImport(url);
     }else {
