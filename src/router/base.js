@@ -19,7 +19,7 @@ var router_base_params = {
     params:{}, 
     query:{}
 };
-
+// init/new/forward/bak/refresh/replace
 var router_base_routerType = 'init';
 var router_base_prevHref;
 var router_base_currentHref = location.toString();
