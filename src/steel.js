@@ -12,7 +12,6 @@
   //import render/index
   //import router/index
   //import core/notice
-  //import core/log
 
   config_push(function(parseParamFn) {
     isDebug = parseParamFn('debug', isDebug);
@@ -23,8 +22,8 @@
   require_dataMain();
   steel.d = require_define;
   steel.res = resource_res;
-  steel.run = render_run;
-  steel.router = router_api;
+  // steel.run = render_run;
+  steel.router = router_router_api;
   steel.setRouter = steel.router.set;
   steel.on = core_notice_on;
   steel.off = core_notice_off;
@@ -35,13 +34,6 @@
     setTimeout(function() {
       require_boot(ns);
       router_boot();
-      if (mainBox) {
-        var controller = router_match(location.toString());
-        if (controller !== false) {
-          render_run(mainBox, controller);
-          core_notice_fire('stageChange', mainBox);
-        } 
-      }
     });
   };
 
@@ -54,12 +46,10 @@
     }
   };
   core_notice_on('routerChange', function(res) {
-    var controller = res.matchResult;
+    var controller = res.controller;
     var changeType = res.changeType;
-    window.scrollTo(0, 0);
     render_run(mainBox, controller);
-    core_notice_fire('stageChange', mainBox);
-    console.log("routerChange", mainBox, controller, changeType);
+    log("routerChange", mainBox, controller, changeType);
   });
 
   window.steel = steel;
