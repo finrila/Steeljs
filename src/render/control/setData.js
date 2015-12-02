@@ -6,9 +6,10 @@
 //import ./toTiggerChildren
 //import core/notice
 
+var render_control_setData_dataCallbackFn;
+
 function render_control_setData(resContainer) {
     
-    var dataCallbackFn;
     var data = resContainer.data;
     var controllerNs = resContainer.controllerNs;
     var startTime = null;
@@ -27,8 +28,8 @@ function render_control_setData(resContainer) {
     if (dataType === 'object') {
         render_control_setData_toRender(data, resContainer);
     } else if (dataType === 'string') {
-        var cb = dataCallbackFn = function(ret) {
-            if (cb === dataCallbackFn) {
+        var cb = render_control_setData_dataCallbackFn = function(ret) {
+            if (cb === render_control_setData_dataCallbackFn) {
                 //拿到ajax数据
                 endTime = new Date;
                 core_notice_fire('ajaxTime', {
