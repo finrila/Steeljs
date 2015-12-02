@@ -24,7 +24,7 @@ function router_getPath(url){
     subHref = subHref.charAt(0) === '/' ? subHref : ('/' + subHref);
     subHref = location.protocol + '//' + location.host + subHref
 
-    router_base_params = !isHTML5 && router_base_useHash ? core_parseURL(subHref) : parseUrl;
+    router_base_params = router_base_useHash ? core_parseURL(subHref) : parseUrl;
     parsePath = router_base_params.path.replace(/\/+/g, '/');
     router_base_params.path = isDebug ? parsePath.replace(/\.(jade|html)$/g, '') : parsePath;
     router_base_params.search = router_base_params.query;
