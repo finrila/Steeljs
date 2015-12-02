@@ -11,4 +11,6 @@ var resource_define_apiRule;
 var resource_queue_list = {};
 
 //加载完成的资源列表
-var resource_cache_list = {};
+// var resource_cache_list = {};
+
+
