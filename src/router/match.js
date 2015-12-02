@@ -3,17 +3,18 @@
 //import ./getPath
 
 //匹配路由表，返回匹配的controller
-function router_match_bak(url) {
-    url = url || location.toString();
-    var parsePath = core_parseURL(url).path.replace(/\/+/g, '/');
-    parsePath = isDebug ? parsePath.replace(/\.(jade|html)$/g, '') : parsePath;
-    for (var i = 0, len = router_base_routerTable.length; i < len; i++) {
-        if (router_match_urlFix(router_base_routerTable[i][0]) === router_match_urlFix(parsePath)) {
-            return router_base_routerTable[i][1];
-        }
-    }
-    return false;
-}
+// @Finrila 没有用到的方法代码
+// function router_match_bak(url) {
+//     url = url || location.toString();
+//     var parsePath = core_parseURL(url).path.replace(/\/+/g, '/');
+//     parsePath = isDebug ? parsePath.replace(/\.(jade|html)$/g, '') : parsePath;
+//     for (var i = 0, len = router_base_routerTable.length; i < len; i++) {
+//         if (router_match_urlFix(router_base_routerTable[i][0]) === router_match_urlFix(parsePath)) {
+//             return router_base_routerTable[i][1];
+//         }
+//     }
+//     return false;
+// }
 
 function router_match(url) {
     url = url || location.toString();
