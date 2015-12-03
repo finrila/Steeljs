@@ -25,7 +25,7 @@ function core_fixUrl(baseUrl, path) {
     var basePath = baseUrlJson.path;
     basePath = origin + (basePath.indexOf('/') === 0 ? '' : '/') + basePath.slice(0, basePath.lastIndexOf('/') + 1);
 
-    if (/https?:\/\/\w+/.test(path)) {
+    if (/^([a-z]+:)?\/\/\w+/i.test(path)) {
         return path;
     }
     if (path === '/') {
