@@ -38,6 +38,5 @@ function resource_fixUrl(url, type) {
 }
 
 function resource_fixUrl_handle(path, url, basePath, hrefPath) {
-    var path = path || basePath || hrefPath;
-    return core_fixUrl(hrefPath, path + url);
+    return core_fixUrl(path || basePath || hrefPath, url);
 }
