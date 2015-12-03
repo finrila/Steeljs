@@ -18,7 +18,7 @@
 	}
  */
 function core_parseURL(url) {
-    var parse_url = /^(?:([A-Za-z]+:)?(\/{2,3})([0-9.\-A-Za-z-]+)(?::(\d+))?)?(\/?[^?#]*)?(?:\?([^#]*))?(?:#(.*))?$/;
+    var parse_url = /^(?:([a-z]+:)?(\/{2,3})([0-9.\-a-z-]+)(?::(\d+))?)?(\/?[^?#]*)?(?:\?([^#]*))?(?:#(.*))?$/i;
     var names = ["url", "protocol", "slash", "host", "port", "path", "query", "hash"];
     var results = parse_url.exec(url);
     var retJson = {};
