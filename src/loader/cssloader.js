@@ -1,4 +1,3 @@
-//import base
 //import core/dom/createElement
 //import core/dom/setAttribute
 //import core/uniqueKey
@@ -6,28 +5,16 @@
 //import resource/queue
 
 function loader_css( url, callback, load_ID ){
-    var link_id = 'link-' + load_ID;
-    if (getElementById(link_id)) {
-        return callback(true);
-    }
     var link = core_dom_createElement('link');
     var load_div = null;
     var domID = core_uniqueKey();
     var timer = null;
-    var _rTime = 300;//3000;
-    url = /(\.css)$/.test(url) ? url : (url + '.css');
-    url = url + '?version=' + loader_base_version;
+    var _rTime = 3000;
 
     core_dom_setAttribute(link, 'rel', 'Stylesheet');
     core_dom_setAttribute(link, 'type', 'text/css');
     core_dom_setAttribute(link, 'charset', 'utf-8');
-    core_dom_setAttribute(link, 'id', link_id);
-    /*if(IE){
-        (link.Stylesheet || link.sheet).addImport(url);
-    }else {
-        core_dom_setAttribute(link, 'href', url);
-        head.appendChild(link);
-    }*/
+    core_dom_setAttribute(link, 'id', load_ID);
     core_dom_setAttribute(link, 'href', url);
     head.appendChild(link);
     load_div = core_dom_createElement('div');
@@ -43,7 +30,7 @@ function loader_css( url, callback, load_ID ){
         if(--_rTime > 0){
             setTimeout(timer, 10);
         }else {
-            log(url + ' timeout!');
+            log('Error: css("' + url + '" timeout!');
             core_hideDiv_removeChild(load_div);
             callback(false);
         }
