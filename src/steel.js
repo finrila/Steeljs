@@ -15,26 +15,22 @@
 
   config_push(function(parseParamFn) {
     isDebug = parseParamFn('debug', isDebug);
+    logLevel = parseParamFn('logLevel', logLevel);
     mainBox = parseParamFn('mainBox', mainBox);
   });
 
-  //初始化data-main
-  require_dataMain();
   steel.d = require_define;
   steel.res = resource_res;
-  // steel.run = render_run;
-  steel.router = router_router_api;
-  steel.setRouter = steel.router.set;
+  steel.run = render_run;
+  steel.router = router_router;
   steel.on = core_notice_on;
   steel.off = core_notice_off;
   steel.setExtTplData = render_control_setExtTplData;
+  steel.require = require_global;
 
   steel.boot = function(ns) {
     steel.isDebug = isDebug;
-    setTimeout(function() {
-      require_boot(ns);
-      router_boot();
-    });
+    require_global(ns, router_boot);
   };
 
   steel._destroyByNode = function(node) {
@@ -45,14 +41,14 @@
       render_control_destroyChildren(resContainer.toDestroyChildrenid);
     }
   };
+  
   core_notice_on('routerChange', function(res) {
     var controller = res.controller;
-    var changeType = res.changeType;
     render_run(mainBox, controller);
-    log("routerChange", mainBox, controller, changeType);
+    core_notice_trigger('stageChange', mainBox);
+    log("Info: routerChange", mainBox, controller, router_base_routerType);
   });
 
   window.steel = steel;
-
 
 }(window);
