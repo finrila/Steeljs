@@ -15,8 +15,10 @@
 var router_router_value;
 
 var router_router = {
-    set: router_router_set,
     get: router_router_get,
+    push: router_router_push,
+    replace: router_router_replace,
+    set: router_router_set,
     back: router_router_back
 };
 /**
@@ -25,6 +27,22 @@ var router_router = {
  */
 function router_router_get() {
     return (router_router_value = router_router_value || router_router_refreshValue());
+}
+/**
+ * 路由前进到某个地址
+ * @param  {string} url 页面地址
+ * @return {undefined} 
+ */
+function router_router_push(url) {
+    router_router_set(url);
+}
+/**
+ * 将路由替换成某个地址
+ * @param  {string} url 页面地址
+ * @return {undefined}
+ */
+function router_router_replace(url) {
+    router_router_set(url, true);
 }
 /**
  * 设置路由
