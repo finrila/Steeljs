@@ -1,69 +1,33 @@
+//import core/object/isObject
 //import ./base
-//import core/parseURL
-//import ./getPath
-
-//匹配路由表，返回匹配的controller
-// @Finrila 没有用到的方法代码
-// function router_match_bak(url) {
-//     url = url || location.toString();
-//     var parsePath = core_parseURL(url).path.replace(/\/+/g, '/');
-//     parsePath = isDebug ? parsePath.replace(/\.(jade|html)$/g, '') : parsePath;
-//     for (var i = 0, len = router_base_routerTable.length; i < len; i++) {
-//         if (router_match_urlFix(router_base_routerTable[i][0]) === router_match_urlFix(parsePath)) {
-//             return router_base_routerTable[i][1];
-//         }
-//     }
-//     return false;
-// }
+//import ./parseURL
 
 function router_match(url) {
-    url = url || location.toString();
-    var path = router_getPath(url);// store values
-    var m = [];//正则校验结果；
+    var routerUrl = core_object_isObject(url) ? url : router_parseURL(url);
+    var path = routerUrl.path;// store values
 
     for (var i = 0, len = router_base_routerTableReg.length; i < len; i++) {
         var obj = router_base_routerTableReg[i];
-        if ((m = obj['pathRegexp'].exec(path))) {
+        var pathMatchResult;//正则校验结果；
+        if (pathMatchResult = obj['pathRegexp'].exec(path)) {
             var keys = obj['keys'];
-            var params = router_base_params.params;
+            var param = {};
             var prop;
             var n = 0;
             var key;
             var val;
 
-            for (var j = 1, len = m.length; j < len; ++j) {
+            for (var j = 1, len = pathMatchResult.length; j < len; ++j) {
                 key = keys[j - 1];
-                prop = key
-                    ? key.name
-                    : n++;
-                val = router_match_decodeParam(m[j]);
-
-                if (val !== undefined || !(hasOwnProperty.call(params, prop))) {
-                    params[prop] = val;
-                }
+                prop = key ? key.name : n++;
+                val = decodeURIComponent(pathMatchResult[j]);
+                param[prop] = val;
             }
-            return obj['controller'];
+
+            return {
+                config: obj['config'],
+                param: param
+            };
         }
     }
-
-    return false;
 }
-
-function router_match_decodeParam(val) {
-    if (typeof val !== 'string') {
-        return val;
-    }
-
-    try {
-        return decodeURIComponent(val);
-    } catch (e) {
-        throw new Error("Failed to decode param '" + val + "'");
-    }
-}
-
-/*
-//最后一个不区分大小写 例如"/v1/public/h5/custommenu/main" 与 "/v1/public/h5/custommenu/mAiN"
-function router_match_urlFix(url) {
-	var res = url.slice(url.lastIndexOf('/') + 1);
-	return url.replace(res, res.toLowerCase());
-}*/

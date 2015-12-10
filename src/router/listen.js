@@ -3,16 +3,21 @@
 //import core/event/addEventListener
 //import core/event/preventDefault
 //import ./match
+//import ./history
+//import ./router
 //import render/run
 //import core/notice
 //import core/fixUrl
+//import core/crossDomainCheck
+
+//@Finrila 未处理hashchange事件
 
 var router_listen_queryTime = 5;
 var router_listen_count;
-var router_listen_lastStateData = undefined;
+var router_listen_lastStateIndex = undefined;
 
 function router_listen() {
-    router_listen_lastStateData = history.state || 0;
+    router_listen_lastStateIndex = router_history_getStateIndex();
     //绑定link
     core_event_addEventListener(document, 'click', function(e) {
         //e.target 是a 有.href　下一步，或者不是a e.target.parentNode
@@ -21,25 +26,24 @@ function router_listen() {
         router_listen_count = 1;
         var hrefNode = router_listen_getHrefNode(el);
         var href = hrefNode && hrefNode.href;
-        if (!href) {
-            return;
-        }
         //如果A连接有target=_blank或者用户同时按下command(新tab打开)、ctrl(新tab打开)、alt(下载)、shift(新窗口打开)键时，直接跳链。
         //@shaobo3  （此处可以优化性能@Finrila）
-        if (hrefNode.getAttribute("target") === "_blank" || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) {
+        if (!href || href.indexOf('javascript:') === 0 || hrefNode.getAttribute("target") === "_blank" || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) {
             return;
         }
         core_event_preventDefault(e);
-        router_listen_setRouter(href);
+        router_router_set(href);
     });
     var popstateTime = 0;
     core_event_addEventListener(window, 'popstate', function() {
-        if (router_listen_lastStateData > (history.state || 0)) {
+        core_notice_trigger('popstate');
+        var currentStateIndex = router_history_getStateIndex();
+        if (router_listen_lastStateIndex > currentStateIndex) {
             router_base_routerType = 'back';
         } else {
             router_base_routerType = 'forward';
         }
-        router_listen_lastStateData = history.state || 0;
+        router_listen_lastStateIndex = currentStateIndex;
         var href = location.href;
         if (popstateTime === 0 && router_base_currentHref === href) {
             return;
@@ -55,7 +59,7 @@ function router_listen() {
 function router_listen_getHrefNode(el) {
     if (el && router_listen_count < router_listen_queryTime) {
         router_listen_count++;
-        if (el.tagName && el.tagName.toLowerCase() === 'a' && /^http/.test(el.href)) {
+        if (el.tagName && el.tagName.toLowerCase() === 'a') {
             return el;
         }
         return router_listen_getHrefNode(el.parentNode);
@@ -65,51 +69,14 @@ function router_listen_getHrefNode(el) {
 function router_listen_handleHrefChenged(url) {
     router_base_prevHref = router_base_currentHref;
     router_base_currentHref = url;
-    var controller = router_match(url);
-    if (controller !== false) {
-        router_listen_fireRouterChange(controller);
+    if (router_router_refreshValue().config) {
+        router_listen_fireRouterChange();
     } else {
         location.reload();
     }
 }
 
-function router_listen_setRouter(url, replace) {
-    var basePath = location.href;
-    url = core_fixUrl(basePath, url);
-    
-    if (android && history.length === 1 || !router_listen_crossDomainCheck(url)) {
-        if (replace) {
-            location.replace(url);
-        } else {
-            location.href = url;
-        }
-    } else {
-        if (replace) {
-            outer_base_routerType = 'replace';
-            history.replaceState(router_listen_lastStateData, null, url);
-        } else {
-            if (router_base_currentHref !== url) {
-                router_base_routerType = 'new';
-                history.pushState(++router_listen_lastStateData, null, url);
-            } else {
-                router_base_routerType = 'refresh';
-            }
-        }
-        router_listen_handleHrefChenged(url);
-    }
-}
-
-function router_listen_crossDomainCheck(url) {
-    var urlPreReg = /^[^:]+:\/\/[^\/]+\//;
-    var locationMatch = location.href.match(urlPreReg);
-    var urlMatch = url.match(urlPreReg);
-    return (locationMatch && locationMatch[0]) === (urlMatch && urlMatch[0]);
-}
-
 //派发routerChange事件，返回router变化数据 @shaobo3
-function router_listen_fireRouterChange(controller) {
-    core_notice_fire('routerChange', {
-        controller: controller,
-        changeType: router_base_routerType
-    });
+function router_listen_fireRouterChange() {
+    core_notice_trigger('routerChange', router_router_get());
 }
