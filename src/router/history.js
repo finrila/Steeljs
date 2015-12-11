@@ -2,18 +2,16 @@
  * 地址管理，负责管理state的数据和当面页面在state历史中的索引位置
  */
 
-//import core/object/isString
-//import core/object/isObject
 //import core/object/extend
 
 // 当前页面在整个单页面跳转中的索引位置
-var router_history_stateIndex_key = 'stateIndex';
+var router_history_stateIndex_key = '--steel-stateIndex';
 var router_history_state_data;
 var router_history_state_dataForPush;
 
 router_history_state_init();
 
-core_notice_on('routerChange', router_history_state_init);
+core_notice_on('popstate', router_history_state_init);
 
 //history pushState 及一些处理
 function router_history_pushState(url) {
@@ -23,7 +21,7 @@ function router_history_pushState(url) {
 }
 //history repaceState 及一些处理
 function router_history_replaceState(url) {
-    history.replaceState(router_history_state(), undefined, url);
+    history.replaceState(router_history_state_data, undefined, url);
 }
 //获取当前页面在整个单页面跳转中的索引位置
 function router_history_getStateIndex() {

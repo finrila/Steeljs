@@ -15,6 +15,8 @@
 
 //当前访问path的变量集合,以及location相关的解析结果
 var router_router_value;
+var router_router_transferData;
+var router_router_isRouterAPICalled;
 var router_router_transferData_key = '-steel-router-transferData';
 var router_router_backNum_key = '-steel-router-backNum';
 
@@ -26,12 +28,15 @@ var router_router = {
     back: router_router_back
 };
 
-core_notice_on('popstate', function popstate() {
-    var stateData = {};
-    stateData[router_router_backNum_key] = undefined;
-    stateData[router_router_transferData_key] = undefined;
-    router_history_state_set(stateData);
-});
+core_notice_on('popstate', router_router_onpopstate);
+
+function router_router_onpopstate() {
+    if (router_router_isRouterAPICalled) {
+        router_router_isRouterAPICalled = undefined;
+        router_history_state_set(router_router_transferData_key, router_router_transferData);
+    }
+    router_router_refreshValue();
+}
 /**
  * 获取当前路由信息
  * @return {object} 路由信息对象
@@ -54,12 +59,12 @@ function router_router_push(url, data) {
  * @param  {Object} data 想要传递到新页面的对象
  * @return {undefined}
  */
-function router_router_replace(url) {
+function router_router_replace(url, data) {
     router_router_set(url, true, data);
 }
 /**
  * 设置路由
- * @param  {string} url     地址
+ * @param  {string} url     地址 必添
  * @param  {boolean} replace 是否替换当前页面 不产生历史
  * @param  {Object} data 想要传递到新页面的对象
  * @return {undefined} 
@@ -70,9 +75,8 @@ function router_router_set(url, replace, data) {
         data = replace;
         replace = false;
     }
-
-    var basePath = location.href;
-    url = core_fixUrl(basePath, url || '');
+    router_router_transferData = data;
+    url = core_fixUrl(router_router_get().url, url || '');
     
     if (!router_base_singlePage || (android && history.length === 1) || !core_crossDomainCheck(url)) {
         if (replace) {
@@ -81,12 +85,6 @@ function router_router_set(url, replace, data) {
             location.href = url;
         }
     } else {
-        core_notice_on('popstate', function popstate() {
-            core_notice_off('popstate', popstate);
-            if (data) {
-                router_history_state_set(router_router_transferData_key, data);
-            }
-        });
         if (replace) {
             router_base_routerType = 'replace';
             router_history_replaceState(url);
@@ -94,11 +92,12 @@ function router_router_set(url, replace, data) {
             if (router_base_currentHref !== url) {
                 router_base_routerType = 'new';
                 router_history_pushState(url);
-                router_listen_lastStateIndex = router_history_getStateIndex();
             } else {
                 router_base_routerType = 'refresh';
             }
         }
+        router_router_isRouterAPICalled = true;
+        router_router_onpopstate();
         router_listen_handleHrefChenged(url);
     }
 }
@@ -111,52 +110,44 @@ function router_router_set(url, replace, data) {
  */
 function router_router_back(url, num, data) {
     //多态
+    if (core_object_isObject(num)) {
+        data = num;
+        num = undefined;
+    }
     if (core_object_isObject(url)) {
         data = url;
         url = num = undefined;
     } else if (core_object_isNumber(url)) {
         num = url;
-        data = num = undefined;
-    } else {
-        if (core_object_isObject(num)) {
-            data = num;
-            num = undefined;
-        }
+        url = undefined;
     }
-    var rightNum = core_object_isNumber(num) && num > 0;
+    router_router_transferData = data;
+    num = (core_object_isNumber(num) && num > 0) ? num : 1;
+
     if (router_base_singlePage) {
         core_notice_on('popstate', function popstate() {
             core_notice_off('popstate', popstate);
             if (url) {
+                url = core_fixUrl(router_router_get().url, url);
                 if (core_crossDomainCheck(url)) {
-                    router_history_replaceState(core_fixUrl(router_router_get().url, url));
+                    router_history_replaceState(url);
                 } else {
                     location.replace(url);
                 }
             }
-            var stateData = {};
-            if (rightNum) {
-                stateData[router_router_backNum_key] = num;
-            }
-            if (data) {
-                stateData[router_router_transferData_key] = data;
-            }
-            if (rightNum || data) {
-                router_history_state_set(stateData);
-            }
         });
     }
-    if (rightNum) {
-        history.go(-num);
-    } else {
-        history.back();
-    }
+
+    router_router_isRouterAPICalled = true;
+    history.go(-num);
 }
 /**
  * 内部使用的路由信息刷新方法
  * @return {object} 路由信息对象
  */
 function router_router_refreshValue() {
+    var lastRouterValue = router_router_value;
+    var index = router_history_getStateIndex();
     router_router_value = router_parseURL();
     var path = router_router_value.path;
     router_router_value.path = isDebug ? path.replace(/\.(jade)$/g, '') : path;
@@ -166,7 +157,8 @@ function router_router_refreshValue() {
     router_router_value.prev = router_base_prevHref;
     router_router_value.transferData = router_history_state_get(router_router_transferData_key);
     router_router_value.state = router_history_state();
-    router_router_value.index = router_history_getStateIndex();
+    router_router_value.index = index;
+    router_router_value.lastIndex = lastRouterValue ? lastRouterValue.index : index;
     var matchResult = router_match(router_router_value);
     if (matchResult) {
         router_router_value.config = matchResult.config;
