@@ -41,8 +41,11 @@ function router_router_onpopstate() {
  * 获取当前路由信息
  * @return {object} 路由信息对象
  */
-function router_router_get() {
-    return (router_router_value = router_router_value || router_router_refreshValue());
+function router_router_get(refresh) {
+    if (refresh || !router_router_value) {
+        router_router_refreshValue();
+    }
+    return router_router_value;
 }
 /**
  * 路由前进到某个地址
