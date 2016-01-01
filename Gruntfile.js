@@ -22,11 +22,17 @@ module.exports = function(grunt) {
 			}
 		},
 		copy: {
-			toSteelHelloWorld: {
+			toUser: {
 				expand: true,
 				cwd: 'dist/',
 				src: ['steel.js'],
-				dest: '../SteelHelloWorld/src/js/lib/'
+				dest: '/Users/finrila/sina_works/weibo_sell/src/js/lib'
+			},
+			toUser1: {
+				expand: true,
+				cwd: 'dist/',
+				src: ['steel.js'],
+				dest: '/Users/finrila/git_works/steeljs-org/Demos/HelloWorld/src/js/lib'
 			}
 		},
 		watch: {
@@ -46,5 +52,5 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-watch');
 
-	grunt.registerTask('default', ['steel-combine', 'uglify']);
+	grunt.registerTask('default', ['steel-combine', 'uglify', 'copy']);
 };

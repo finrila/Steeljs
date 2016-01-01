@@ -6,19 +6,15 @@
 //import render/control/setCss
 
 function render_control_destroy(idMap, onlyRes) {
-  
   idMap = idMap || {};
-
   if (typeof idMap === 'string') {
     var _idMap = {};
     _idMap[idMap] = true;
     idMap = _idMap;
   }
-
   for (var id in idMap) {
     render_control_destroy_one(id, onlyRes);
   }
-
 }
 
 function render_control_destroy_one(id, onlyRes) {
@@ -31,7 +27,6 @@ function render_control_destroy_one(id, onlyRes) {
       childControl._destroy();
       delete render_base_controlCache[id];
     }
-
     if (childControllerNs) {
       delete render_base_controllerNs[id];
     }

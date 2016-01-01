@@ -3,6 +3,7 @@
  */
 
 //import core/object/extend
+//import core/object/isObject
 
 // 当前页面在整个单页面跳转中的索引位置
 var router_history_stateIndex_key = '--steel-stateIndex';
@@ -34,7 +35,7 @@ function router_history_state_init() {
 }
 //获取当前的state
 function router_history_state() {
-    return history.state || {};
+    return core_object_isObject(history.state) ? history.state : {};
 }
 //获取下一个将要push页面的state数据
 function router_history_stateForPush() {

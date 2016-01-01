@@ -7,6 +7,7 @@
 //import core/object/isString
 //import core/object/isObject
 //import core/crossDomainCheck
+//import core/argsPolymorphism
 //import ./base
 //import ./listen
 //import ./parseURL
@@ -19,13 +20,16 @@ var router_router_transferData;
 var router_router_isRouterAPICalled;
 var router_router_transferData_key = '-steel-router-transferData';
 var router_router_backNum_key = '-steel-router-backNum';
+var router_router_prevHref_key = '-steel-router-prevHref';
 
 var router_router = {
     get: router_router_get,
     push: router_router_push,
     replace: router_router_replace,
     set: router_router_set,
-    back: router_router_back
+    back: router_router_back,
+    refresh: router_router_refresh,
+    clearTransferData: router_router_clearTransferData
 };
 
 core_notice_on('popstate', router_router_onpopstate);
@@ -34,6 +38,8 @@ function router_router_onpopstate() {
     if (router_router_isRouterAPICalled) {
         router_router_isRouterAPICalled = undefined;
         router_history_state_set(router_router_transferData_key, router_router_transferData);
+    } else {
+        router_router_clearTransferData();
     }
     router_router_refreshValue();
 }
@@ -41,8 +47,8 @@ function router_router_onpopstate() {
  * 获取当前路由信息
  * @return {object} 路由信息对象
  */
-function router_router_get(refresh) {
-    if (refresh || !router_router_value) {
+function router_router_get(refreshRouterValue) {
+    if (refreshRouterValue || !router_router_value) {
         router_router_refreshValue();
     }
     return router_router_value;
@@ -81,7 +87,7 @@ function router_router_set(url, replace, data) {
     router_router_transferData = data;
     url = core_fixUrl(router_router_get().url, url || '');
     
-    if (!router_base_singlePage || (android && history.length === 1) || !core_crossDomainCheck(url)) {
+    if (!router_base_singlePage || !core_crossDomainCheck(url)) {// || (android && history.length === 1)
         if (replace) {
             location.replace(url);
         } else {
@@ -104,46 +110,77 @@ function router_router_set(url, replace, data) {
         router_listen_handleHrefChenged(url);
     }
 }
+
+/**
+ * 单页面刷新
+ * @return {undefined} 
+ */
+function router_router_refresh() {
+    if (router_base_singlePage) {
+        router_router_set(router_router_get().url);
+    } else {
+        location.reload();
+    }
+}
 /**
  * 路由后退
  * @param  {string} url 后退后替换的地址 可以为空
  * @param  {number} num 后退的步数 默认为1步 必须为大于0的正整数
  * @param  {Object} data 想要传递到新页面的对象
+ * @param  {boolean} refresh 是否在后退后刷新页面
  * @return {undefined}
  */
-function router_router_back(url, num, data) {
-    //多态
-    if (core_object_isObject(num)) {
-        data = num;
-        num = undefined;
-    }
-    if (core_object_isObject(url)) {
-        data = url;
-        url = num = undefined;
-    } else if (core_object_isNumber(url)) {
-        num = url;
-        url = undefined;
-    }
+function router_router_back(url, num, data, refresh) {
+    var options = core_argsPolymorphism(arguments, ['url', 'num', 'data', 'refresh'], ['string', 'number', 'object', 'boolean']);
+    url = options.url;
+    num = options.num;
+    data = options.data;
+    refresh = options.refresh;
+
     router_router_transferData = data;
     num = (core_object_isNumber(num) && num > 0) ? num : 1;
-
+    
     if (router_base_singlePage) {
+        if (router_history_getStateIndex() < num) {
+            url && location.replace(core_fixUrl(router_router_get().url, url));
+            return false;
+        }
         core_notice_on('popstate', function popstate() {
             core_notice_off('popstate', popstate);
-            if (url) {
-                url = core_fixUrl(router_router_get().url, url);
+            var currentUrl = router_router_get().url;
+            url = url && core_fixUrl(currentUrl, url);
+            if (url && url !== currentUrl) {
                 if (core_crossDomainCheck(url)) {
+                    router_base_routerType = 'refresh';
                     router_history_replaceState(url);
+                    router_router_refreshValue();
                 } else {
                     location.replace(url);
                 }
+            } else if (refresh) {
+                router_base_routerType = 'refresh';
             }
         });
+        router_router_isRouterAPICalled = true;
+        history.go(-num);
+        return true;
+    } else {
+        if (url) {
+            location.href = core_fixUrl(router_router_get().url, url);
+        } else {
+            history.go(-num);
+        }
+        return true;
     }
 
-    router_router_isRouterAPICalled = true;
-    history.go(-num);
 }
+
+function router_router_clearTransferData() {
+    if (router_base_singlePage) {
+        router_history_state_set(router_router_transferData_key, undefined);
+    }
+}
+
 /**
  * 内部使用的路由信息刷新方法
  * @return {object} 路由信息对象
@@ -157,7 +194,7 @@ function router_router_refreshValue() {
     router_router_value.search = router_router_value.query;
     router_router_value.query = core_queryToJson(router_router_value.query);
     router_router_value.type = router_base_routerType;
-    router_router_value.prev = router_base_prevHref;
+    router_router_value.prev = router_base_prevHref || router_history_state_get(router_router_prevHref_key);
     router_router_value.transferData = router_history_state_get(router_router_transferData_key);
     router_router_value.state = router_history_state();
     router_router_value.index = index;

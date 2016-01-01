@@ -6,7 +6,7 @@
 //import core/notice
 
 function render_control_setTpl(resContainer) {
-    var controllerNs = resContainer.controllerNs;
+    var controllerNs = render_base_controllerNs[resContainer.boxId];
     var tplCallbackFn;
     var startTime = null;
     var endTime = null;
@@ -22,8 +22,8 @@ function render_control_setTpl(resContainer) {
         }
         var cb = tplCallbackFn = function(jadefn){
             if(cb === tplCallbackFn){
-                endTime = new Date;
-                core_notice_fire('tplTime', {
+                endTime = now();
+                core_notice_trigger('tplTime', {
                     startTime: startTime,
                     tplTime: endTime - startTime || 0,
                     ctrlNS: controllerNs
@@ -31,8 +31,8 @@ function render_control_setTpl(resContainer) {
                 resContainer.tplFn = jadefn;
                 render_control_setTpl_toRender(resContainer);
             }
-        }
-        startTime = new Date;
+        };
+        startTime = now();
         require_global(tpl, cb, render_error, controllerNs);
     }
 }
