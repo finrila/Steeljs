@@ -37,7 +37,7 @@
   steel.require = require_global;
   steel.config = config;
 
-  steel.boot = function(ns) {render_boot
+  steel.boot = function(ns) {
     steel.isDebug = isDebug;
     require_global(ns, function() {
       render_boot();
